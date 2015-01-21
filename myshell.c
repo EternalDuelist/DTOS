@@ -25,15 +25,12 @@ void commands (char *c, char **a) {
 int main (void) {
    int i;
    char **args;
-<<<<<<< HEAD
    
    while (1) {
       printf("swagshell> "); 
-=======
 
    while(1) {
       printf("myshell> ");
->>>>>>> origin/master
       args = getline();
       pid = fork();
 	  
