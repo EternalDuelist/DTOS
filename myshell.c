@@ -29,7 +29,8 @@ int main (void) {
       printf("swagshell> ");
       args = getline();
       pid = fork();
-	  // here is a comment. Hi
+	  /*here is a comment. Hi
+	  */
 
       if (args[0] != NULL) {
          if (strcmp(args[0], "exit") == 0) {
