@@ -26,9 +26,6 @@ int main (void) {
    int i;
    char **args;
    
-   while (1) {
-      printf("swagshell> "); 
-
    while(1) {
       printf("myshell> ");
       args = getline();
