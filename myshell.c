@@ -9,15 +9,11 @@ pid_t pid;
 
 void commands (char *c, char **a) {
    int status;
-   if (strcmp(c, "cd") == 0) {
-   } 
+   if (pid == 0) {
+      execvp(c, a);
+   }
    else {
-      if (pid == 0) {
-         execvp(c, a);
-      }
-      else {
-         waitpid(pid, &status,0);
-      }
+      waitpid(pid, &status,0);
    }
 }
 
@@ -29,12 +25,13 @@ int main (void) {
       printf("swagshell> ");
       args = getline();
       pid = fork();
-	  /*here is a comment. Hi
-	  */
 
       if (args[0] != NULL) {
          if (strcmp(args[0], "exit") == 0) {
             _exit(0);
+         }
+         else if (strcmp(args[0], "cd") == 0) {
+            chdir(args);
          }
          else {
             commands(args[0], args);
