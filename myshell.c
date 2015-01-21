@@ -27,7 +27,7 @@ int main (void) {
    char **args;
    
    while(1) {
-      printf("myshell> ");
+      printf("swagshell> ");
       args = getline();
       pid = fork();
 	  
