@@ -5,7 +5,6 @@
 #include <string.h>
 
 extern char **getline();
-
 pid_t pid;
 
 void commands (char *c, char **a) {
