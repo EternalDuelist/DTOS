@@ -33,13 +33,54 @@ void newProc (char *command, char **args) {
    if (pid == 0) {
       exeCommand(command, args);
    } else {
-      waitpid(pid, &status,0);
+      waitpid(pid, &status, 0);
    }
 }
+int length (char **a) {
+   int len = 0;
+   while (a[len] != NULL) {
+      len++;
+   }
+   return len;
+}
+
+void parray (char **a) {
+   int ind;
+   for (ind = 0; a[ind] != NULL; ind++) {
+      printf("%s ", a[ind]);
+   } 
+   printf("\n");
+}
+
+void mypipe (char **args, int end) {
+   int n;
+   int lpi = 0;
+
+   for (n = 0; n < end; n++) {
+      if (strcmp(args[n], "|") == 0) {
+         lpi = n;
+      }
+   } 
+
+   if (lpi == 0) {
+      newProc(args[0], args);
+      printf("poop\n");
+   } else {
+      char **last = args+lpi+1;
+      /*
+      char **init = memcpy(init, &args, sizeof(*args) * lpi);
+      parray(init);
+      */
+      parray(last);
+   }
+} 
 
 int main (void) {
    int i;
    char **args;
+
+   printf("You are now running SwagShell. The swaggiest shell around.\n");
+   printf("Created by David Carranza and Justin Barros.\n");
 
    while(1) {
       printf("SwagShell> ");
@@ -51,7 +92,8 @@ int main (void) {
          } else if (strcmp(args[0], "cd") == 0) {
             exeCommand(args[0], args+1); 
          } else {
-            newProc(args[0], args);
+            mypipe(args, length(args));
+           /* newProc(args[0], args); */
          }
       }
    }
