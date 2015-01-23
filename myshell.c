@@ -51,20 +51,28 @@ void myPipe (char **lhs, char **rhs) {
    /* pipe */
 } 
 
-void myRedir (char **lhs, char **rhs, int toFile) {
-   if (toFile == 1) {
-      int f = open(rhs[0], O_RDWR, S_IRUSR | S_IWUSR);
-      if (f < 0) {
-         printf("Error: %d is less than 0\n", f);
+void myRedir (char **lhs, char **rhs, int operand) {
+   int status;
+   pid_t pid;
+   pid = fork();
+
+   if (pid == 0) {
+      if (operand == 1) {
+         int f = open(rhs[0], O_RDWR, S_IRUSR | S_IWUSR);
+         if (f < 0) {
+            printf("Error: %d is less than 0\n", f);
+         }
+         close(1);
+         dup(f);
+         newProc(lhs[0], lhs);
+         _exit(0);
+      } else {
+         /* do stuff for "<" */
+         parray(lhs);
+         parray(rhs);
       }
-      close(1);
-      dup(f);
-      newProc(lhs[0], lhs);
-      _exit(0);
    } else {
-      /* do stuff for "<" */
-      parray(lhs);
-      parray(rhs);
+      waitpid(pid, &status, 0);
    }
 } 
 
@@ -77,7 +85,6 @@ void myExec (char **args) {
          toFile = 1;
       } else if (strcmp(args[i], "<") == 0) {
          red = i;
-         toFile = 0;
       } else if (strcmp(args[i], "|") == 0) {
          lpi = i;
       }
@@ -86,10 +93,11 @@ void myExec (char **args) {
    if (red == 0 && lpi == 0) {
       newProc(args[0], args);
    } else if (red != 0) {
-      char **left = memcpy(left, args, sizeof(*args) *red);
-      char **right = args+red+1;
-      myRedir(left, right, toFile);
       /* redirecting stuff */
+      char **right = args+red+1;
+      char **left = malloc(sizeof(char **));
+      left = memcpy(left, args, sizeof(*args) * red);
+      myRedir(left, right, toFile);
    } else if (lpi != 0) {
       /* piping stuff */
    }
