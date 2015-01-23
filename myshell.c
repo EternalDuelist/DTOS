@@ -4,6 +4,8 @@
 #include <sys/wait.h>
 #include <errno.h>
 #include <string.h>
+#include <fcntl.h>
+#include <sys/stat.h>
 
 extern char **getline(void);
 
@@ -49,21 +51,33 @@ void myPipe (char **lhs, char **rhs) {
    /* pipe */
 } 
 
-void myRedir (char **lhs, char **rhs) {
-   printf("Tryna Redirect here...\n");
-   parray(lhs);
-   parray(rhs);
-   /* redirect */
+void myRedir (char **lhs, char **rhs, int toFile) {
+   if (toFile == 1) {
+      int f = open(rhs[0], O_RDWR, S_IRUSR | S_IWUSR);
+      if (f < 0) {
+         printf("Error: %d is less than 0\n", f);
+      }
+      close(1);
+      dup(f);
+      newProc(lhs[0], lhs);
+      _exit(0);
+   } else {
+      /* do stuff for "<" */
+      parray(lhs);
+      parray(rhs);
+   }
 } 
 
 void myExec (char **args) {
-   int i, red = 0, lpi = 0;
+   int i, toFile = 0, red = 0, lpi = 0;
 
    for (i = 0; args[i] != NULL; i++) {
       if (strcmp(args[i], ">") == 0) {
          red = i;
+         toFile = 1;
       } else if (strcmp(args[i], "<") == 0) {
          red = i;
+         toFile = 0;
       } else if (strcmp(args[i], "|") == 0) {
          lpi = i;
       }
@@ -72,9 +86,9 @@ void myExec (char **args) {
    if (red == 0 && lpi == 0) {
       newProc(args[0], args);
    } else if (red != 0) {
-      char **left = memcpy(left, args, sizeof(*args) * red);
+      char **left = memcpy(left, args, sizeof(*args) *red);
       char **right = args+red+1;
-      myRedir(left, right);
+      myRedir(left, right, toFile);
       /* redirecting stuff */
    } else if (lpi != 0) {
       /* piping stuff */
@@ -91,7 +105,6 @@ int main (void) {
    while(1) {
       printf("SwagShell> ");
       args = getline();
-
       if (args[0] != NULL) {
          if (strcmp(args[0], "exit") == 0) {
             _exit(0);
