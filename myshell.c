@@ -52,14 +52,12 @@ void parray (char **a) {
    printf("\n");
 }
 
-void mypipe (char **args, int end) {
-   int i, j;
-   int r = 0, lpi = 0;
+void myredir (char **args, int end) {
+   int i;
+   int r = 0;
 
    for (i = 0; i < end; i++) {
-      if (strcmp(args[i], "|") == 0) {
-         lpi = i;
-      } else if (strcmp(args[i], ">") == 0) {
+      if (strcmp(args[i], ">") == 0) {
          r = i;
       } else if (strcmp(args[i], "<") == 0) {
          r = i;
@@ -67,29 +65,9 @@ void mypipe (char **args, int end) {
    } 
 
    if (r == 0) {
-   } else {
-      char **rhs = args+r+1;
-      /*
-      char **lhs;
-      for (j = 0; j < r; j++) {
-         lhs[j] = args[j];
-      }
-      */
-   }
-
-   if (lpi == 0) {
       newProc(args[0], args);
    } else {
-       char **last = args+lpi+1;
-       char **init = args;
-       parray(last);
-       for (j = 0; init[j] != NULL; j++) {
-          if (j >= lpi) {
-             init[j] = NULL;
-          }
-       } 
-       parray(init);
-       parray(last);
+      /* stuff */
    }
 } 
 
@@ -110,7 +88,7 @@ int main (void) {
          } else if (strcmp(args[0], "cd") == 0) {
             exeCommand(args[0], args+1); 
          } else {
-            mypipe(args, length(args));
+            myredir(args, length(args));
            /* newProc(args[0], args); */
          }
       }
