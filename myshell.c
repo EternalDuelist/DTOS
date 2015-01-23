@@ -36,13 +36,6 @@ void newProc (char *command, char **args) {
       waitpid(pid, &status, 0);
    }
 }
-int length (char **a) {
-   int len = 0;
-   while (a[len] != NULL) {
-      len++;
-   }
-   return len;
-}
 
 void parray (char **a) {
    int i;
@@ -52,22 +45,39 @@ void parray (char **a) {
    printf("\n");
 }
 
-void myredir (char **args, int end) {
-   int i;
-   int r = 0;
+void myPipe (char **lhs, char **rhs) {
+   /* pipe */
+} 
 
-   for (i = 0; i < end; i++) {
+void myRedir (char **lhs, char **rhs) {
+   printf("Tryna Redirect here...\n");
+   parray(lhs);
+   parray(rhs);
+   /* redirect */
+} 
+
+void myExec (char **args) {
+   int i, red = 0, lpi = 0;
+
+   for (i = 0; args[i] != NULL; i++) {
       if (strcmp(args[i], ">") == 0) {
-         r = i;
+         red = i;
       } else if (strcmp(args[i], "<") == 0) {
-         r = i;
+         red = i;
+      } else if (strcmp(args[i], "|") == 0) {
+         lpi = i;
       }
    } 
 
-   if (r == 0) {
+   if (red == 0 && lpi == 0) {
       newProc(args[0], args);
-   } else {
-      /* stuff */
+   } else if (red != 0) {
+      char **left = memcpy(left, args, sizeof(*args) * red);
+      char **right = args+red+1;
+      myRedir(left, right);
+      /* redirecting stuff */
+   } else if (lpi != 0) {
+      /* piping stuff */
    }
 } 
 
@@ -88,7 +98,7 @@ int main (void) {
          } else if (strcmp(args[0], "cd") == 0) {
             exeCommand(args[0], args+1); 
          } else {
-            myredir(args, length(args));
+            myExec(args);
            /* newProc(args[0], args); */
          }
       }
