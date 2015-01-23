@@ -45,33 +45,51 @@ int length (char **a) {
 }
 
 void parray (char **a) {
-   int ind;
-   for (ind = 0; a[ind] != NULL; ind++) {
-      printf("%s ", a[ind]);
+   int i;
+   for (i = 0; a[i] != NULL; i++) {
+      printf("%s ", a[i]);
    } 
    printf("\n");
 }
 
 void mypipe (char **args, int end) {
-   int n;
-   int lpi = 0;
+   int i, j;
+   int r = 0, lpi = 0;
 
-   for (n = 0; n < end; n++) {
-      if (strcmp(args[n], "|") == 0) {
-         lpi = n;
+   for (i = 0; i < end; i++) {
+      if (strcmp(args[i], "|") == 0) {
+         lpi = i;
+      } else if (strcmp(args[i], ">") == 0) {
+         r = i;
+      } else if (strcmp(args[i], "<") == 0) {
+         r = i;
       }
    } 
 
+   if (r == 0) {
+   } else {
+      char **rhs = args+r+1;
+      /*
+      char **lhs;
+      for (j = 0; j < r; j++) {
+         lhs[j] = args[j];
+      }
+      */
+   }
+
    if (lpi == 0) {
       newProc(args[0], args);
-      printf("poop\n");
    } else {
-      char **last = args+lpi+1;
-      /*
-      char **init = memcpy(init, &args, sizeof(*args) * lpi);
-      parray(init);
-      */
-      parray(last);
+       char **last = args+lpi+1;
+       char **init = args;
+       parray(last);
+       for (j = 0; init[j] != NULL; j++) {
+          if (j >= lpi) {
+             init[j] = NULL;
+          }
+       } 
+       parray(init);
+       parray(last);
    }
 } 
 
