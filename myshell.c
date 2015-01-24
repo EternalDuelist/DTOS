@@ -48,7 +48,26 @@ void parray (char **a) {
 }
 
 void myPipe (char **lhs, char **rhs) {
-   /* pipe */
+   int status;
+   pid_t pid;
+   pid = fork();
+
+   if (pid == 0) {
+      int in = open(lhs[0], O_RDONLY);
+      int out = open(rhs[0], O_WRONLY);
+      if (in < 0 || out < 0) {
+         printf("In: %d | Out: %d\n", in, out); 
+      }
+      close(0);
+      dup(in);
+      close(1);
+      dup(out);
+      newProc(lhs[0], lhs);
+      newProc(rhs[0], rhs);
+      _exit(0);
+   } else {
+      waitpid(pid, &status, 0);
+   }
 } 
 
 void myRedir (char **lhs, char **rhs, int operand) {
@@ -58,18 +77,27 @@ void myRedir (char **lhs, char **rhs, int operand) {
 
    if (pid == 0) {
       if (operand == 1) {
-         int f = open(rhs[0], O_RDWR, S_IRUSR | S_IWUSR);
+         /* do stuff for ">" */
+         int f = open(rhs[0], O_WRONLY);
          if (f < 0) {
             printf("Error: %d is less than 0\n", f);
          }
          close(1);
          dup(f);
+         close(f);
          newProc(lhs[0], lhs);
          _exit(0);
       } else {
          /* do stuff for "<" */
-         parray(lhs);
-         parray(rhs);
+         int f = open(rhs[0], O_RDONLY);
+         if (f < 0) {
+            printf("Error: %d is less than 0\n", f);
+         }
+         close(0);
+         dup(f);
+         close(f);
+         newProc(lhs[0], lhs);
+         _exit(0);
       }
    } else {
       waitpid(pid, &status, 0);
@@ -95,11 +123,15 @@ void myExec (char **args) {
    } else if (red != 0) {
       /* redirecting stuff */
       char **right = args+red+1;
-      char **left = malloc(sizeof(char **));
+      char **left = malloc(red*sizeof(*args));
       left = memcpy(left, args, sizeof(*args) * red);
       myRedir(left, right, toFile);
    } else if (lpi != 0) {
       /* piping stuff */
+      char **right = args+lpi+1;
+      char **left = malloc(lpi*sizeof(*args));
+      left = memcpy(left, args, sizeof(*args) * lpi);
+      myPipe(left, right);
    }
 } 
 
