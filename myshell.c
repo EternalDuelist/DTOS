@@ -13,18 +13,20 @@ int status;
 pid_t pid;
 
 /*
-   Takes in an error return value and prints it out.
+ * Takes in an error return value and prints it out.
 */
 void procResolution(int r) {
-   printf("errno is %d\n",errno);
+   if (errno != 0) {
+      printf("Not enough swag: %s\n",strerror(errno));
+   }
 }
 
 /*
-   Takes in the first comand in args and the rest
-   of args checks to see if the command is "cd".
-   If so, then do not fork() a new process, but 
-   call chdir() instead. Otherwise, fork() a
-   new process.
+ * Takes in the first comand in args and the rest
+ * of args checks to see if the command is "cd".
+ * If so, then do not fork() a new process, but 
+ * call chdir() instead. Otherwise, fork() a
+ * new process.
 */
 void exeCommand (char *command, char **args){
    if (strcmp(command, "cd") == 0) {
@@ -34,14 +36,14 @@ void exeCommand (char *command, char **args){
          procResolution(chdir(args[0]));
       }
    } else {
-      execvp(command, args);
+      procResolution(execvp(command, args));
    }
 }
 
 /*
-   Takes the first command in args and the rest of
-   args then forks a new process to execute the
-   command in the child process as the parent waits
+ * Takes the first command in args and the rest of
+ * args then forks a new process to execute the
+ * command in the child process as the parent waits
 */
 void newProc (char *command, char **args) {
    pid = fork();
@@ -53,9 +55,9 @@ void newProc (char *command, char **args) {
 }
 
 /*
-   Takes the left and right hand sides of a pipe
-   operand and pipes the output of the left side
-   as input to the right side
+ * Takes the left and right hand sides of a pipe
+ * operand and pipes the output of the left side
+ * as input to the right side
 */
 void myPipe (char **lhs, char **rhs) {
    int pfd[2];
@@ -63,24 +65,20 @@ void myPipe (char **lhs, char **rhs) {
    pid = fork();
 
    if (pid == 0) {
-      waitpid(pid, &status, 1);
+      dup2(pfd[1], 1);
+      exeCommand(lhs[0], lhs);
+   } else {
       dup2(pfd[0], 0);
       close(pfd[1]);
-      close(pfd[0]);
       exeCommand(rhs[0], rhs);
-   } else {
-      dup2(pfd[1], 1);
-      close(pfd[0]);
-      close(pfd[1]);
-      exeCommand(lhs[0], lhs);
    }
 } 
 
 /*
-   Takes in the left and right hand sides of a redirect
-   operand as well as a flag that indicates which operand
-   was used ("<" or ">"). Then performs the proper redirection
-   procedure based on the given operand
+ * Takes in the left and right hand sides of a redirect
+ * operand as well as a flag that indicates which operand
+ * was used ("<" or ">"). Then performs the proper redirection
+ * procedure based on the given operand
 */
 void myRedir (char **lhs, char **rhs, int operand) {
    pid = fork();
@@ -90,19 +88,22 @@ void myRedir (char **lhs, char **rhs, int operand) {
          int f = open(rhs[0], O_WRONLY | O_CREAT | O_TRUNC);
          if (f < 0) {
             printf("Error: %d is less than 0\n", f);
-         }
-         dup2(f, 1);
-         exeCommand(lhs[0], lhs);
-         _exit(0);
+         } else {
+            int c;
+	    dup2(f, 1);
+            exeCommand(lhs[0], lhs);
+            close(f);
+	 }
       } else {
          /* command "<" file */
          int f = open(rhs[0], O_RDONLY);
          if (f < 0) {
             printf("Error: %d is less than 0\n", f);
-         }
-         dup2(f, 0);
-         exeCommand(lhs[0], lhs);
-         _exit(0);
+         } else {
+            dup2(f, 0);
+            exeCommand(lhs[0], lhs);
+            close(f);
+	 }
       }
    } else {
       waitpid(pid, &status, 0);
@@ -110,11 +111,11 @@ void myRedir (char **lhs, char **rhs, int operand) {
 } 
 
 /*
-   Takes in args and checks if there is a redirection
-   or pipe operand. If so, either call myRedir() or
-   myPipe on the corresponding scenario. Otherwise,
-   just call newProc() to fork() a new process and 
-   execute the command
+ * Takes in args and checks if there is a redirection
+ * or pipe operand. If so, either call myRedir() or
+ * myPipe on the corresponding scenario. Otherwise,
+ * just call newProc() to fork() a new process and 
+ * execute the command
 */
 void myExec (char **args) {
    int i, operand = 0, red = 0, lpi = 0;
@@ -148,9 +149,9 @@ void myExec (char **args) {
 } 
 
 /*
-   Main function checks if the command given in args[0] is 
-   "exit". If so then exit the shell. If command is "cd" then 
-   call exeCommand(). Otherwise, call myExec()
+ * Main function checks if the command given in args[0] is 
+ * "exit". If so then exit the shell. If command is "cd" then 
+ * call exeCommand(). Otherwise, call myExec()
 */
 int main (void) {
    int i;
