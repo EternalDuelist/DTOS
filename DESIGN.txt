@@ -3,7 +3,7 @@ This document specifies the design of an implementation of a MINIX shell program
 
 
 Assumptions:
-1. The shell will be able to run the internal shell command “exit”.
+1. The shell will be able to run the internal shell command "exit".
 2. The shell will be able to run internal shell commands with no arguments.
 3. The shell will be able to run internal shell commands with arguments.
 4. The shell will be able to redirect the output of commands with or without arguments to a file.
@@ -12,42 +12,44 @@ Assumptions:
 
 
 Rules for running and compiling the shell:
-Using the Makefile that was provided, the shell can be compiled by typing in “make” while in the MINIX directory that the source files are in. After compiling, the shell can be run by typing “./myshell” on the same place that “make” was typed in. After doing so, the user may proceed to run MINIX based commands such as ls, exit, echo, clear, pwd, and so on.
+Using the Makefile that was provided, the shell can be compiled by typing in "make" while in the MINIX directory that the source files are in.
+After compiling, the shell can be run by typing "./myshell"on the same place that "make" was typed in.
+After doing so, the user may proceed to run MINIX based commands such as ls, exit, echo, clear, pwd, and so on.
 
 
 Data:
-1. getline() – handles the arguments passed to main()
+1. getline() - handles the arguments passed to main()
 - It can contain up to 10 elements
 
-2. status – status of a process
+2. status - status of a process
 - The status of a process if passed into it
 
-3. pid – the process id
+3. pid - the process id
 - It is used to determine what the current process is
 
-4. args – the entire collection of arguments that the user inputs
+4. args - the entire collection of arguments that the user inputs
 - Contains the commands that the user wants to execute
 
-5. command – a minix command that needs to be executed
+5. command - a minix command that needs to be executed
 - The command at position 0 of args, args[0]
 
-6. lhs – left hand side of args before an operand
-- Part before “<”, “>”, or “|”
+6. lhs - left hand side of args before an operand
+- Part before "<", ">", or "|"
 
-7. rhs – right hand side of args after an operand
-- Part after “<”, “>”, or “|”
+7. rhs - right hand side of args after an operand
+- Part after "<", ">", or "|"
 
-8. red – the index of redirection operand is at in args
+8. red - the index of redirection operand is at in args
 - if a redirect operand exists in args, it takes that value
 - otherwise, it takes the value of 0.
 
-9. lpi – the index of pipe operand is at in args
+9. lpi - the index of pipe operand is at in args
 - if a pipe operand exists in args, it takes that value
 - otherwise, it takes the value of 0.
 
-10.  operand – flag for redirect operands
-- If the value is 1, the “>” operand is being executed
-- If the value is 0, “the “<” operand is being executed
+10.  operand - flag for redirect operands
+- If the value is 1, the ">" operand is being executed
+- If the value is 0, the "<" operand is being executed
 
 
 Operations:
@@ -61,7 +63,7 @@ Operations:
 - Description: a function that takes the command in args[0] and the rest of args then executes execvp.
 - Input: a command, args
 - Output: nothing
-- Result: checks if a command is “cd” or not, then executes procResolution()
+- Result: checks if a command is "cd" or not, then executes procResolution()
 
 3. newProc(char *command, char **args)
 - Description: a function that takes in the commands in args[0] and the rest of args then forks a new process and calls exeCommand().
@@ -103,9 +105,9 @@ Operations:
 Algorithm for main():
 1. While the user has not exited the shell
 2.  	Get the user’s commands
-3.  	If the command is “exit”
+3.  	If the command is "exit"
 4.  		Exit the shell
-5.  	If the command is “cd”
+5.  	If the command is "cd"
 6.  		Call exeCommand()
 7.  	Else
 8.  		Call myExec()
@@ -123,10 +125,10 @@ Algorithm for exeCommand():
 
 Algorithm for myExec():
 1. For all the arguments of args that are not NULL
-2.  	If the argument at that position i is “>”
+2.  	If the argument at that position i is ">"
 3.  		red = i
 4.  		operand = 1
-5.  	Else if the argument at that position i is “<”
+5.  	Else if the argument at that position i is "<"
 6.  		red = i
 7.  	Else if argument at that position i is “|”
 8.  		lpi = i
