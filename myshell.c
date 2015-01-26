@@ -16,7 +16,9 @@ pid_t pid;
    Takes in an error return value and prints it out.
 */
 void procResolution(int r) {
-   printf("errno is %d\n",errno);
+   if (errno != 0) {
+      printf("Not enough swag: %s\n", strerror(errno));
+   }
 }
 
 /*
@@ -53,6 +55,22 @@ void newProc (char *command, char **args) {
 }
 
 /*
+   copies the contents of src to dest up to src[n-1]
+   returns dest
+*/
+char** cpyargs(char **dest, char **src, int n) {
+   int i; 
+   for(i = 0; src[i] != NULL; i++) {
+      if(i >= n) {
+         dest[i] = src[n+10];
+      } else {
+         dest[i] = src[i];
+      }
+   } 
+   return dest;
+}
+
+/*
    Takes the left and right hand sides of a pipe
    operand and pipes the output of the left side
    as input to the right side
@@ -63,16 +81,12 @@ void myPipe (char **lhs, char **rhs) {
    pid = fork();
 
    if (pid == 0) {
-      waitpid(pid, &status, 1);
+      dup2(pfd[1], 1);
+      exeCommand(lhs[0], lhs);
+   } else {
       dup2(pfd[0], 0);
       close(pfd[1]);
-      close(pfd[0]);
       exeCommand(rhs[0], rhs);
-   } else {
-      dup2(pfd[1], 1);
-      close(pfd[0]);
-      close(pfd[1]);
-      exeCommand(lhs[0], lhs);
    }
 } 
 
@@ -92,8 +106,9 @@ void myRedir (char **lhs, char **rhs, int operand) {
             printf("Error: %d is less than 0\n", f);
          }
          dup2(f, 1);
+         close(f);
          exeCommand(lhs[0], lhs);
-         _exit(0);
+        _exit(0);
       } else {
          /* command "<" file */
          int f = open(rhs[0], O_RDONLY);
@@ -101,8 +116,9 @@ void myRedir (char **lhs, char **rhs, int operand) {
             printf("Error: %d is less than 0\n", f);
          }
          dup2(f, 0);
+         close(f);
          exeCommand(lhs[0], lhs);
-         _exit(0);
+        _exit(0);
       }
    } else {
       waitpid(pid, &status, 0);
@@ -134,15 +150,15 @@ void myExec (char **args) {
       newProc(args[0], args);
    } else if (red != 0) {
       /* redirecting stuff */
-      char **right = args+red+1;
       char **left = malloc(sizeof(*args) * red);
-      left = memcpy(left, args, sizeof(*args) * red);
+      char **right = args+red+1;
+      cpyargs(left, args, red); 
       myRedir(left, right, operand);
    } else if (lpi != 0) {
       /* piping stuff */
-      char **right = args+lpi+1;
       char **left = malloc(sizeof(*args) * lpi);
-      left = memcpy(left, args, sizeof(*args) * lpi);
+      char **right = args+lpi+1;
+      cpyargs(left, args, lpi);
       myPipe(left, right);
    }
 } 
